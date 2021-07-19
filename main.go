@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/nomadcoders/nomadcoin/person"
+	"github.com/shong91/cryptocurrency/person"
 )
 
 // seldomly use const

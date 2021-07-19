@@ -1,3 +1,2 @@
-module github.com/nomadcoders/nomadcoin
-
+module github.com/shong91/cryptocurrency
 go 1.16
