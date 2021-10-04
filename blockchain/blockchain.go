@@ -6,8 +6,7 @@ import (
 	"sync"
 )
 
-
-type block struct {
+type Block struct {
 	// hash = data + prevHash
 	// data -> hash is one-way function
 	Data     string
@@ -16,14 +15,14 @@ type block struct {
 }
 
 type blockchain struct {
-	// slice of pointer
-	blocks []*block
+	// slice of pointer(*block)
+	blocks []*Block
 }
 
 var b *blockchain
 var once sync.Once
 
-func (b *block) calculateHash() {
+func (b *Block) calculateHash() {
 	hash := sha256.Sum256([]byte(b.Data + b.PrevHash))
 	b.Hash = fmt.Sprintf("%x", hash)
 }
@@ -34,16 +33,18 @@ func getLastHash() string {
 	if totalBlocks == 0 {
 		return ""
 	}
-	return GetBlockchain().blocks[totalBlocks - 1].Hash
+	return GetBlockchain().blocks[totalBlocks-1].Hash
 
 }
 
-func createBlock(data string) *block {
-	newBlock := block{data, "", getLastHash()}
+func createBlock(data string) *Block {
+	// data, hash, prevhash
+	newBlock := Block{data, "", getLastHash()}
 	newBlock.calculateHash()
 	return &newBlock
 }
 
+// Uppercase means it will be exported
 func (b *blockchain) AddBlock(data string) {
 	b.blocks = append(b.blocks, createBlock(data))
 
@@ -52,6 +53,7 @@ func (b *blockchain) AddBlock(data string) {
 // singleton pattern: share ONLY 1 INSTANCE in application
 func GetBlockchain() *blockchain {
 	if b == nil {
+		// sync.Once: method which calls only once
 		once.Do(func() {
 			b = &blockchain{}
 			b.AddBlock("Genesis")
@@ -60,6 +62,6 @@ func GetBlockchain() *blockchain {
 	return b
 }
 
-func (b *blockchain) AllBlocks() []*block {
+func (b *blockchain) AllBlocks() []*Block {
 	return b.blocks
 }

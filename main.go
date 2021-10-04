@@ -2,19 +2,50 @@ package main
 
 import (
 	"fmt"
+	"html/template"
+	"log"
+	"net/http"
 
 	"github.com/shong91/cryptocurrency/blockchain"
 )
 
+const port string = ":4000"
+
+type homeData struct {
+	PageTitle string
+	Blocks    []*blockchain.Block
+}
+
+func home(rw http.ResponseWriter, r *http.Request) {
+	// request 는 pointer 를 사용하여 원본을 받는다 - 다양한 형식, 빅데이터 등 대량 데이터도 request 로 들어올 수 있기 때문
+	// Fprint: writer 에 출력
+	// fmt.Fprint(rw, "Hello from home!")
+
+	// solution 1) there is NO try-catch is Go. We need to do manually
+	// tmpl, err := template.ParseFiles("templates/home.html")
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
+
+	// solution 2) Must() 로 감싸줌 -> 오류가 있다면 err 를 출력함
+	tmpl := template.Must(template.ParseFiles("templates/home.gohtml"))
+	data := homeData{"home", blockchain.GetBlockchain().AllBlocks()}
+	tmpl.Execute(rw, data)
+
+}
 
 func main() {
-	chain := blockchain.GetBlockchain()
-	chain.AddBlock("Second")
-	chain.AddBlock("Third")
-	chain.AddBlock("Fourth")
-	for _, block := range chain.AllBlocks() {
-		fmt.Printf("Data: %s\n", block.Data)
-		fmt.Printf("Hash: %s\n", block.Hash)
-		fmt.Printf("PrevHash: %s\n", block.PrevHash)
-	}
+	// chain := blockchain.GetBlockchain()
+	// chain.AddBlock("Second Block")
+	// chain.AddBlock("Third Block")
+	// chain.AddBlock("Fourth Block")
+	// for _, block := range chain.AllBlocks() {
+	// 	fmt.Printf("Data: %s\n", block.Data)
+	// 	fmt.Printf("Hash: %s\n", block.Hash)
+	// 	fmt.Printf("PrevHash: %s\n", block.PrevHash)
+	// }
+	http.HandleFunc("/", home)
+	fmt.Printf("Listening on http://localhost%s\n", port)
+	log.Fatal(http.ListenAndServe(port, nil))
+
 }
