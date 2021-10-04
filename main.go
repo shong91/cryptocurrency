@@ -39,6 +39,21 @@ func home(rw http.ResponseWriter, r *http.Request) {
 	templates.ExecuteTemplate(rw, "home", data)
 }
 
+func add(rw http.ResponseWriter, r *http.Request){
+	switch r.Method {
+	case "GET":
+		templates.ExecuteTemplate(rw, "add", nil)
+	case "POST":
+		// get data from 'name' prop
+		r.ParseForm()
+		data := r.Form.Get("blockData")
+		blockchain.GetBlockchain().AddBlock(data)
+		http.Redirect(rw, r, "/", http.StatusPermanentRedirect)
+
+	}
+
+}
+
 func main() {
 	// chain := blockchain.GetBlockchain()
 	// chain.AddBlock("Second Block")
@@ -54,6 +69,7 @@ func main() {
 	templates = template.Must(template.ParseGlob(templateDir + "pages/*.gohtml"))
 	templates = template.Must(templates.ParseGlob(templateDir + "partials/*.gohtml")) // update variable
 	http.HandleFunc("/", home)
+	http.HandleFunc("/add", add)
 	fmt.Printf("Listening on http://localhost%s\n", port)
 	log.Fatal(http.ListenAndServe(port, nil))
 

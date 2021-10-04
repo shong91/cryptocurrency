@@ -1,19 +1,13 @@
 {{define "add"}}
 <!DOCTYPE html>
 <html>
-<head>
-    <meta charset='utf-8'>
-    <meta http-equiv='X-UA-Compatible' content='IE=edge'>
-    <title>cryptocurrency</title>
-    <meta name='viewport' content='width=device-width, initial-scale=1'>
-    <link rel="stylesheet" href="https://unpkg.com/mvp.css">
-    {{ template "head"}}
-</head>
+    {{ template "head" "Add"}}
 <body>
-    {{ template "header"}}
+    {{ template "header" "Add"}}
     <main>
-    <form>
-        <input type="text" placeholder="Data for your block" required />
+    <form method="POST" action="/add">
+        <input type="text" name="blockData" placeholder="Data for your block" required />
+        <button> Add block </button>
     </form> 
     </main>
     {{ template "footer"}}

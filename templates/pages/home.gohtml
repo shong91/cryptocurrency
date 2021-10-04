@@ -1,19 +1,12 @@
 {{define "home"}}
 <!DOCTYPE html>
 <html>
-<head>
-    <meta charset='utf-8'>
-    <meta http-equiv='X-UA-Compatible' content='IE=edge'>
-    <title>cryptocurrency</title>
-    <meta name='viewport' content='width=device-width, initial-scale=1'>
-    <link rel="stylesheet" href="https://unpkg.com/mvp.css">
-    {{ template "head"}}
-</head>
+    {{ template "head" .PageTitle}}
 <body>
-    {{ template "header"}}
+    {{ template "header" .PageTitle}}
     <main>
     {{ range .Blocks }}
-        {{template "block"}}
+        {{template "block" . }}
     {{ end }}
     </main>
     {{ template "footer"}}
