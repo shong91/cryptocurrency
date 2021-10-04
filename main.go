@@ -9,7 +9,12 @@ import (
 	"github.com/shong91/cryptocurrency/blockchain"
 )
 
-const port string = ":4000"
+
+const (
+	port 		string = ":4000"
+	templateDir string = "templates/"
+)
+var templates *template.Template
 
 type homeData struct {
 	PageTitle string
@@ -28,10 +33,10 @@ func home(rw http.ResponseWriter, r *http.Request) {
 	// }
 
 	// solution 2) Must() 로 감싸줌 -> 오류가 있다면 err 를 출력함
-	tmpl := template.Must(template.ParseFiles("templates/home.gohtml"))
+	// tmpl := template.Must(template.ParseFiles("templates/pages/home.gohtml"))
 	data := homeData{"home", blockchain.GetBlockchain().AllBlocks()}
-	tmpl.Execute(rw, data)
-
+	// tmpl.Execute(rw, data)
+	templates.ExecuteTemplate(rw, "home", data)
 }
 
 func main() {
@@ -44,6 +49,10 @@ func main() {
 	// 	fmt.Printf("Hash: %s\n", block.Hash)
 	// 	fmt.Printf("PrevHash: %s\n", block.PrevHash)
 	// }
+
+	// golang does NOT support **/
+	templates = template.Must(template.ParseGlob(templateDir + "pages/*.gohtml"))
+	templates = template.Must(templates.ParseGlob(templateDir + "partials/*.gohtml")) // update variable
 	http.HandleFunc("/", home)
 	fmt.Printf("Listening on http://localhost%s\n", port)
 	log.Fatal(http.ListenAndServe(port, nil))
