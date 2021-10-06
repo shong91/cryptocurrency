@@ -9,10 +9,18 @@ import (
 
 
 const port string = ":4000"
+type URL string 
+
+// implement TextMarshaler
+// https://pkg.go.dev/encoding#TextMarshaler
+func (u URL) MarshalText() ([]byte, error) {
+	url := fmt.Sprintf("http://localhost%s%s", port, u)
+	return []byte(url), nil
+}
 
 // Add field tag in order to use in JSON 
 type URLDescription struct {
-	URL string `json:"url"`
+	URL URL `json:"url"`
 	Method string `json:"method"`
 	Description string `json:"description"`
 	Payload string `json:"payload,omitempty"`
@@ -20,17 +28,22 @@ type URLDescription struct {
 
 }
 
+// example: implement Stringer interface
+func (u URLDescription) String() string {
+	return "Hello I'm the URL Description"
+}
+
 func documentation(rw http.ResponseWriter, r *http.Request) {
 	// sending JSON
 	// URLDescription slice
 	data := []URLDescription{
 		{
-			URL: "/",
+			URL: URL("/"),
 			Method: "GET",
 			Description: "See documentation",
 		},
 		{
-			URL: "/blocks",
+			URL: URL("/blocks"),
 			Method: "POST",
 			Description: "Add a block",
 			Payload: "data:string",
