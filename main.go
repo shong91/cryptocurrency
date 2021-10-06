@@ -5,8 +5,10 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-)
 
+	"github.com/shong91/cryptocurrency/blockchain"
+	"github.com/shong91/cryptocurrency/utils"
+)
 
 const port string = ":4000"
 type URL string 
@@ -26,6 +28,10 @@ type URLDescription struct {
 	Payload string `json:"payload,omitempty"`
 	IgnoreField string `json:"-"`
 
+}
+
+type AddBlockBody struct {
+	Message string
 }
 
 // example: implement Stringer interface
@@ -63,9 +69,28 @@ func documentation(rw http.ResponseWriter, r *http.Request) {
 
 }
 
+func blocks(rw http.ResponseWriter, r *http.Request){
+	switch r.Method {
+	case "GET":
+		rw.Header().Add("Content-Type", "application/json")
+		json.NewEncoder(rw).Encode(blockchain.GetBlockchain().AllBlocks())
+	case "POST":
+		// decode requestbody
+		var addBlockBody AddBlockBody // empty struct variable
+		
+		// set decoding data in variable - using pointer 		
+		utils.HandleErr(json.NewDecoder(r.Body).Decode(&addBlockBody)) 
+		fmt.Println(addBlockBody)
+		blockchain.GetBlockchain().AddBlock(addBlockBody.Message)
+		rw.WriteHeader(http.StatusCreated)
+	}
+
+}
+
 func main() {
 	// lexplorer.Start()
 	http.HandleFunc("/", documentation)
+	http.HandleFunc("/blocks", blocks)
 	fmt.Printf("Listening on http://localhost%s", port)
 	log.Fatal(http.ListenAndServe(port, nil))
 
