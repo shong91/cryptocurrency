@@ -47,7 +47,6 @@ func (u urlDescription) String() string {
 
 func documentation(rw http.ResponseWriter, r *http.Request) {
 	// sending JSON
-	// urlDescription slice
 	data := []urlDescription{
 		{
 			URL:         url("/"),
@@ -67,31 +66,23 @@ func documentation(rw http.ResponseWriter, r *http.Request) {
 			Description: "See A Block",
 		},
 	}
-	// rw.Header().Add("Content-Type", "application/json")
 
 	// Marshalling in order to send by JSON
 	// 소프트웨어는 바이트 단위로 데이터를 인식한다.메모리 바이트는 해석하는 틀에 따라 달라지는데, 이러한 변환(논리적 구조를 로우 바이트로 변환)을 '인코딩' 또는 '마샬링Mashaling'이라고 한다.
 	// 반대로, byte slice 나 문자열을 논리적 자료 구조로 변환하는 것을 언마샬링Unmashaling 이라 한다.
 	// Go에서는 encoding package 에서 마샬링을 담당
 	json.NewEncoder(rw).Encode(data)
-	// b, err := json.Marshal(data)
-	// utils.HandleErr(err)
-	// fmt.Fprintf(rw, "%s",b)
 
 }
 
 func blocks(rw http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "GET":
-		// rw.Header().Add("Content-Type", "application/json")
 		json.NewEncoder(rw).Encode(blockchain.GetBlockchain().AllBlocks())
 	case "POST":
-		// decode requestbody
+		// decode requestbody & set decoding data in variable - using pointer
 		var addBlockBody addBlockBody // empty struct variable
-
-		// set decoding data in variable - using pointer
 		utils.HandleErr(json.NewDecoder(r.Body).Decode(&addBlockBody))
-		fmt.Println(addBlockBody)
 		blockchain.GetBlockchain().AddBlock(addBlockBody.Message)
 		rw.WriteHeader(http.StatusCreated)
 	}
@@ -100,8 +91,7 @@ func blocks(rw http.ResponseWriter, r *http.Request) {
 
 func block(rw http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r) // map 형태로 key:value 받아옴
-	// Atoi: convert string to int
-	id, err := strconv.Atoi(vars["height"])
+	id, err := strconv.Atoi(vars["height"])	// Atoi: convert string to int
 	utils.HandleErr(err)
 	
 	block, err := blockchain.GetBlockchain().GetBlock(id)
@@ -116,6 +106,9 @@ func block(rw http.ResponseWriter, r *http.Request) {
 
 // create middleware
 func jsonContentTypeMiddleWare(next http.Handler) http.Handler {
+	// HandlerFunc is adapter pattern..: adapter 에 적절한 args 를 보내주면, adapter 가 필요한 것을 구현한다. 
+	// [Adapter Pattern] https://huisam.tistory.com/entry/AdapterPattern
+	// [[Go] Handle, Handler , HandleFunc 이해] https://yoongrammer.tistory.com/29
 	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request){
 		rw.Header().Add("Content-Type", "application/json")
 		next.ServeHTTP(rw, r)
