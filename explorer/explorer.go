@@ -15,7 +15,6 @@ type homeData struct {
 }
 
 const (
-	port 		string = ":4000"
 	templateDir string = "explorer/templates/"
 )
 var templates *template.Template
@@ -41,18 +40,20 @@ func add(rw http.ResponseWriter, r *http.Request){
 		http.Redirect(rw, r, "/", http.StatusPermanentRedirect)
 	}
 }
-func Start() {
+func Start(port int) {
+	handler := http.NewServeMux()
+
 	// load all templates
 	// golang does NOT support [**/] .. depth 가 있는 경우 이렇게 나눠서 ParseGlob 처리해주어야 함
 	templates = template.Must(template.ParseGlob(templateDir + "pages/*.gohtml"))
 	templates = template.Must(templates.ParseGlob(templateDir + "partials/*.gohtml")) // update variable
 	
 	// handle URL 
-	http.HandleFunc("/", home)
-	http.HandleFunc("/add", add)
+	handler.HandleFunc("/", home)
+	handler.HandleFunc("/add", add)
 
 	// Run server; server-side rendering in Go (which is SUPER EASY!) 
-	fmt.Printf("Listening on http://localhost%s\n", port)
-	log.Fatal(http.ListenAndServe(port, nil))
+	fmt.Printf("Listening on http://localhost:%d\n", port)
+	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", port), handler))
 
 }
