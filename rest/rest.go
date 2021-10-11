@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 
+	"github.com/gorilla/mux"
 	"github.com/shong91/cryptocurrency/blockchain"
 	"github.com/shong91/cryptocurrency/utils"
 )
@@ -34,6 +36,10 @@ type addBlockBody struct {
 	Message string
 }
 
+type errorResponse struct {
+	ErrorMessage string `json:"errorMessage"`
+}
+
 // example: implement Stringer interface
 func (u urlDescription) String() string {
 	return "Hello I'm the URL Description"
@@ -56,7 +62,7 @@ func documentation(rw http.ResponseWriter, r *http.Request) {
 			IgnoreField: "ignore",
 		},
 		{
-			URL:         url("/blocks/{id}"),
+			URL:         url("/blocks/{height}"),
 			Method:      "GET",
 			Description: "See A Block",
 		},
@@ -92,18 +98,36 @@ func blocks(rw http.ResponseWriter, r *http.Request) {
 
 }
 
+func block(rw http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r) // map 형태로 key:value 받아옴
+	// Atoi: convert string to int
+	id, err := strconv.Atoi(vars["height"])
+	utils.HandleErr(err)
+	
+	block, err := blockchain.GetBlockchain().GetBlock(id)
+	encoder := json.NewEncoder(rw)
+	if err == blockchain.ErrNotFound {
+		// convert error to string 
+		encoder.Encode(errorResponse{fmt.Sprint(err)})
+	} else {
+		encoder.Encode(block)
+	}
+}
+
 func Start(aPort int) {
 	// ListenAndServe(port, nil): nil 일 경우 기본 multiplexer 를 사용
 	// multiplexer 는 클라이언트가 보낸 요청을 어디로 보낼지 결정하는데, main.go 에서 호출한 두 package의 Start() 가 같은 url 을 호출하고 있음 
 	// http.HandleFunc 의 url 이 같기 때문에 multiple registration 오류 발생
 	// => use their own multiplexer (http.NewServeMux())
 
-	handler := http.NewServeMux()
+	// use gorillaMux which is more effective than default multiplexer NewServerMux
+	router := mux.NewRouter()
 	port = fmt.Sprintf(":%d", aPort)
-	handler.HandleFunc("/", documentation)
-	handler.HandleFunc("/blocks", blocks)
+	router.HandleFunc("/", documentation).Methods("GET")
+	router.HandleFunc("/blocks", blocks).Methods("GET", "POST")
+	router.HandleFunc("/blocks/{height:[0-9]+}", block).Methods("GET") // gorillaMux can use regex
 	
 	fmt.Printf("Listening on http://localhost%s\n", port)
-	log.Fatal(http.ListenAndServe(port, handler))
+	log.Fatal(http.ListenAndServe(port, router))
 
 }

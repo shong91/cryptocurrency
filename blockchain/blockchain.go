@@ -2,6 +2,7 @@ package blockchain
 
 import (
 	"crypto/sha256"
+	"errors"
 	"fmt"
 	"sync"
 )
@@ -9,9 +10,10 @@ import (
 type Block struct {
 	// hash = data + prevHash
 	// data -> hash is one-way function
-	Data     string
-	Hash     string
-	PrevHash string
+	Data     string `json:"data"`
+	Hash     string `json:"hash"`
+	PrevHash string	`json:"prevHash,omitempty"`
+	Height 	 int	`json:"height"`
 }
 
 type blockchain struct {
@@ -38,8 +40,8 @@ func getLastHash() string {
 }
 
 func createBlock(data string) *Block {
-	// data, hash, prevhash
-	newBlock := Block{data, "", getLastHash()}
+	// data, hash, prevhash, height 
+	newBlock := Block{data, "", getLastHash(), len(GetBlockchain().blocks) + 1}
 	newBlock.calculateHash()
 	return &newBlock
 }
@@ -64,4 +66,15 @@ func GetBlockchain() *blockchain {
 
 func (b *blockchain) AllBlocks() []*Block {
 	return b.blocks
+}
+
+var ErrNotFound = errors.New("Block not found")
+
+func (b *blockchain) GetBlock(height int) (*Block, error) {
+	// error handling: index out of range
+	if height > len(b.blocks) {
+		return nil, ErrNotFound
+	}
+	return b.blocks[height-1], nil
+	
 }
