@@ -1,13 +1,38 @@
 package main
 
 import (
-	"github.com/shong91/cryptocurrency/rest"
+	"flag"
+	"fmt"
+	"os"
 )
 
+func usage(){
+	fmt.Printf("Welcome to cryptocurrency \n\n")
+	fmt.Printf("please use the following command: \n\n")
+	fmt.Printf("explorer: this starts the HTML Explorer \n")
+	fmt.Printf("rest: this starts the REST API (recommended) \n")
+
+	os.Exit(0) // error code 0 = none
+}
 
 func main() {
-	// go routine 을 사용하여 동시에 실행되도록 한다
-	// go explorer.Start(3000)
-	rest.Start(4000)
+	if len(os.Args) < 2 {
+		usage()
+	}
 
+	rest := flag.NewFlagSet("rest", flag.ExitOnError)
+	portFlag := rest.Int("port", 4000, "Sets the port of ther server")
+
+	switch os.Args[1] {
+	case "explorer":
+		fmt.Printf("Start explorer")
+	case "rest":
+		rest.Parse(os.Args[2:])
+	default:
+		usage()
+	}
+
+	if rest.Parsed() {
+		fmt.Println("Start server with port:", *portFlag)	
+	}
 }
