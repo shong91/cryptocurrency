@@ -1,8 +1,8 @@
 package main
 
-import "github.com/shong91/cryptocurrency/cli"
+import "github.com/shong91/cryptocurrency/blockchain"
 
 func main() {
-	cli.Start()
+	blockchain.Blockchain()
 
 }

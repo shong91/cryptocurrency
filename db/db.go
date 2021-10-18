@@ -1,6 +1,8 @@
 package db
 
 import (
+	"fmt"
+
 	"github.com/boltdb/bolt"
 	"github.com/shong91/cryptocurrency/utils"
 )
@@ -32,4 +34,27 @@ func DB() *bolt.DB{
 
 	}
 	return db
+}
+
+func SaveBlock(hash string, data []byte){
+	fmt.Printf("saving block %s\nData: %b\n", hash, data)
+	err := DB().Update(func(t *bolt.Tx) error {
+		bucket := t.Bucket([]byte(blocksBucket))
+		// key, value = hash, data
+		err := bucket.Put([]byte(hash), data)
+		return err
+	})
+	utils.HandleErr(err)
+
+}
+
+func SaveBlockchain(data []byte){
+	err := DB().Update(func(t *bolt.Tx) error {
+		bucket := t.Bucket([]byte(dataBucket))
+		// key, value = hash, data
+		err := bucket.Put([]byte("checkpoint"), data) // save only newesthash and height
+		return err
+	})
+	utils.HandleErr(err)
+	
 }
