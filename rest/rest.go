@@ -5,11 +5,9 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"strconv"
 
 	"github.com/gorilla/mux"
 	"github.com/shong91/cryptocurrency/blockchain"
-	"github.com/shong91/cryptocurrency/utils"
 )
 
 var port string
@@ -61,7 +59,7 @@ func documentation(rw http.ResponseWriter, r *http.Request) {
 			IgnoreField: "ignore",
 		},
 		{
-			URL:         url("/blocks/{height}"),
+			URL:         url("/blocks/{hash}"),
 			Method:      "GET",
 			Description: "See A Block",
 		},
@@ -78,23 +76,23 @@ func documentation(rw http.ResponseWriter, r *http.Request) {
 func blocks(rw http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "GET":
-		json.NewEncoder(rw).Encode(blockchain.GetBlockchain().AllBlocks())
+		return
+		// json.NewEncoder(rw).Encode(blockchain.GetBlockchain().AllBlocks())
 	case "POST":
 		// decode requestbody & set decoding data in variable - using pointer
-		var addBlockBody addBlockBody // empty struct variable
-		utils.HandleErr(json.NewDecoder(r.Body).Decode(&addBlockBody))
-		blockchain.GetBlockchain().AddBlock(addBlockBody.Message)
-		rw.WriteHeader(http.StatusCreated)
+		return
+		// var addBlockBody addBlockBody // empty struct variable
+		// utils.HandleErr(json.NewDecoder(r.Body).Decode(&addBlockBody))
+		// blockchain.GetBlockchain().AddBlock(addBlockBody.Message)
+		// rw.WriteHeader(http.StatusCreated)
 	}
 
 }
 
 func block(rw http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r) // map 형태로 key:value 받아옴
-	id, err := strconv.Atoi(vars["height"])	// Atoi: convert string to int
-	utils.HandleErr(err)
-	
-	block, err := blockchain.GetBlockchain().GetBlock(id)
+	hash := vars["hash"]
+	block, err := blockchain.FindBlock(hash)
 	encoder := json.NewEncoder(rw)
 	if err == blockchain.ErrNotFound {
 		// convert error to string 
@@ -127,7 +125,7 @@ func Start(aPort int) {
 	router.Use(jsonContentTypeMiddleWare)
 	router.HandleFunc("/", documentation).Methods("GET")
 	router.HandleFunc("/blocks", blocks).Methods("GET", "POST")
-	router.HandleFunc("/blocks/{height:[0-9]+}", block).Methods("GET") // gorillaMux can use regex
+	router.HandleFunc("/blocks/{hash:[a-f0-9]+}", block).Methods("GET") // gorillaMux can use regex
 	
 	fmt.Printf("Listening on http://localhost%s\n", port)
 	log.Fatal(http.ListenAndServe(port, router))

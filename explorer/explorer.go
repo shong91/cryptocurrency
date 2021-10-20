@@ -24,7 +24,7 @@ func home(rw http.ResponseWriter, r *http.Request) {
 	
 	// how to try-catch in Go? 
 	// Must(): 에러가 있는지 체크해 주는 helper function
-	data := homeData{"home", blockchain.GetBlockchain().AllBlocks()}
+	data := homeData{"home", nil}
 	templates.ExecuteTemplate(rw, "home", data)
 }
 
@@ -36,7 +36,7 @@ func add(rw http.ResponseWriter, r *http.Request){
 		// get data from 'name' prop
 		r.ParseForm()
 		data := r.Form.Get("blockData")
-		blockchain.GetBlockchain().AddBlock(data)
+		blockchain.Blockchain().AddBlock(data)
 		http.Redirect(rw, r, "/", http.StatusPermanentRedirect)
 	}
 }
