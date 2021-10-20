@@ -1,8 +1,6 @@
 package db
 
 import (
-	"fmt"
-
 	"github.com/boltdb/bolt"
 	"github.com/shong91/cryptocurrency/utils"
 )
@@ -11,6 +9,7 @@ const (
 	dbName = "blockchain.db"
 	dataBucket = "data"
 	blocksBucket = "blocks"
+	checkpoint = "checkpoint"
 )
 
 var db *bolt.DB
@@ -37,7 +36,6 @@ func DB() *bolt.DB{
 }
 
 func SaveBlock(hash string, data []byte){
-	fmt.Printf("saving block %s\nData: %b\n", hash, data)
 	err := DB().Update(func(t *bolt.Tx) error {
 		bucket := t.Bucket([]byte(blocksBucket))
 		// key, value = hash, data
@@ -52,9 +50,19 @@ func SaveBlockchain(data []byte){
 	err := DB().Update(func(t *bolt.Tx) error {
 		bucket := t.Bucket([]byte(dataBucket))
 		// key, value = hash, data
-		err := bucket.Put([]byte("checkpoint"), data) // save only newesthash and height
+		err := bucket.Put([]byte(checkpoint), data) // save only newesthash and height
 		return err
 	})
 	utils.HandleErr(err)
 	
+}
+
+func Checkpoint() []byte {
+	var data []byte
+	DB().View(func(t *bolt.Tx) error {
+		bucket := t.Bucket([]byte(dataBucket))
+		data = bucket.Get([]byte(checkpoint))
+		return nil
+	})
+	return data
 }
