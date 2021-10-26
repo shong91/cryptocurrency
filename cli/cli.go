@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"runtime"
 
 	"github.com/shong91/cryptocurrency/explorer"
 	"github.com/shong91/cryptocurrency/rest"
@@ -15,7 +16,9 @@ func usage() {
 	fmt.Printf("-port=4000: Set the PORT of the server \n")
 	fmt.Printf("-mode=rest: Choose between 'html' and 'rest' \n")
 
-	os.Exit(0) // error code 0 = none
+	// 모든 함수를 제거하지만, 그 전에 defer 를 먼저 이행한다.
+	runtime.Goexit()
+
 }
 
 func Start() {
