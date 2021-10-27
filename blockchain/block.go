@@ -9,6 +9,7 @@ import (
 	"github.com/shong91/cryptocurrency/utils"
 )
 
+const difficulty int = 2
 
 type Block struct {
 	// hash = data + prevHash
@@ -17,6 +18,8 @@ type Block struct {
 	Hash     string `json:"hash"`
 	PrevHash string `json:"prevHash,omitempty"`
 	Height   int    `json:"height"`
+	Difficulty int `json:"difficulty"`
+	Nonce	int `json:"nonce"`
 }
 
 func (b *Block) persist(){

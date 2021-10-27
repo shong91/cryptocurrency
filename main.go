@@ -1,12 +1,25 @@
 package main
 
 import (
-	"github.com/shong91/cryptocurrency/cli"
-	"github.com/shong91/cryptocurrency/db"
+	"crypto/sha256"
+	"fmt"
+	"strings"
 )
 
 
 func main() {
-	defer db.Close()
-	cli.Start()
+	difficulty := 2
+	target := strings.Repeat("0", difficulty)
+	fmt.Println(target)
+	nonce := 1
+	for {
+		hash := fmt.Sprintf("%x\n",sha256.Sum256([]byte("hello"+ fmt.Sprint(nonce))))
+		fmt.Printf("Hash:%s\nTarget:%s\nNonce:%d\n", hash, target, nonce)
+		if strings.HasPrefix(hash, target) {
+			// kill the function 
+			return
+		} else {
+			nonce++
+		}
+	}
 }
