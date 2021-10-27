@@ -4,6 +4,7 @@ import (
 	"crypto/sha256"
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/shong91/cryptocurrency/db"
 	"github.com/shong91/cryptocurrency/utils"
@@ -43,6 +44,24 @@ func FindBlock(hash string) (*Block, error){
 	return block, nil
 
 }
+
+func (b *Block) mine(){
+	target := strings.Repeat("0", b.Difficulty)
+	for {
+		// hash all blocks 
+		blockAsString := fmt.Sprint(b)
+		hash := fmt.Sprintf("%x", sha256.Sum256([]byte(blockAsString)))
+		fmt.Printf("blockAsString:%s\nHash:%s\nTarget:%s\nNonce:%d\n\n\n", blockAsString, hash, target, b.Nonce)
+		if strings.HasPrefix(hash, target) {
+			// find hash
+			b.Hash = hash
+			break
+		} else {
+			b.Nonce++
+		}
+
+	}
+}
  
 func createBlock(data string, prevHash string, height int) *Block{
 	block := &Block{
@@ -50,11 +69,10 @@ func createBlock(data string, prevHash string, height int) *Block{
 		Hash:     "",
 		PrevHash: prevHash,
 		Height:   height,
+		Difficulty: difficulty,
+		Nonce: 0,
 	}
-	
-	// create hash and block hash
-	payload := block.Data + block.PrevHash + fmt.Sprint(block.Height)
-	block.Hash = fmt.Sprintf("%x", sha256.Sum256([]byte(payload)))
+	block.mine()
 	block.persist()
 	return block
 }
