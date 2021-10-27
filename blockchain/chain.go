@@ -8,10 +8,15 @@ import (
 	"github.com/shong91/cryptocurrency/utils"
 )
 
+const (
+	defaultDifficulty int = 2
+	difficultyInterval int = 5
+)
 
 type blockchain struct {
 	NewestHash string `json:"newestHash"`
 	Height 		 int `json:"height"`
+	CurrentDifficulty int `json:"currentDifficulty"`
 }
 
 var b *blockchain
@@ -50,12 +55,24 @@ func (b *blockchain) Blocks() []*Block {
 	
 }
 
+func (b *blockchain) difficulty() int {
+	if b.Height == 0 {
+		return defaultDifficulty
+	} else if b.Height % difficultyInterval == 0 {
+		// recalculate the difficulty
+	} else {
+		return b.CurrentDifficulty
+	}
+}
+
 // singleton pattern: share ONLY 1 INSTANCE in application
 func Blockchain() *blockchain {
 	if b == nil {
 		// sync.Once: method which calls only once
 		once.Do(func() {
-			b = &blockchain{"", 0}
+			b = &blockchain{
+				Height: 0,
+			}
 			// search for checkpoint on the DB
 			checkpoint := db.Checkpoint()
 			if checkpoint == nil {
