@@ -53,6 +53,11 @@ func documentation(rw http.ResponseWriter, r *http.Request) {
 			Description: "See documentation",
 		},
 		{
+			URL:         url("/status"),
+			Method:      "GET",
+			Description: "See the Status of the Blockchain",
+		},
+		{
 			URL:         url("/blocks"),
 			Method:      "POST",
 			Description: "Add a block",
@@ -112,6 +117,12 @@ func jsonContentTypeMiddleWare(next http.Handler) http.Handler {
 	})
 }
 
+func status(rw http.ResponseWriter, r *http.Request){
+	json.NewEncoder(rw).Encode(blockchain.Blockchain())
+	
+
+}
+
 func Start(aPort int) {
 	// ListenAndServe(port, nil): nil 일 경우 기본 multiplexer 를 사용
 	// multiplexer 는 클라이언트가 보낸 요청을 어디로 보낼지 결정하는데, main.go 에서 호출한 두 package의 Start() 가 같은 url 을 호출하고 있음 
@@ -123,6 +134,7 @@ func Start(aPort int) {
 	port = fmt.Sprintf(":%d", aPort)
 	router.Use(jsonContentTypeMiddleWare)
 	router.HandleFunc("/", documentation).Methods("GET")
+	router.HandleFunc("/status", status).Methods("GET")
 	router.HandleFunc("/blocks", blocks).Methods("GET", "POST")
 	router.HandleFunc("/blocks/{hash:[a-f0-9]+}", block).Methods("GET") // gorillaMux can use regex
 	
