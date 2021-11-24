@@ -52,3 +52,6 @@ func makeCoinbaseTx(address string) *Tx {
 
 	return &tx
 }
+
+// Mempool: 확인되지 않은 거래 내역들이 담긴 곳. (메모리 풀)
+// 거래 내역을 블록에 추가하면 -> Confirmed ! 

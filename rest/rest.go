@@ -8,6 +8,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/shong91/cryptocurrency/blockchain"
+	"github.com/shong91/cryptocurrency/utils"
 )
 
 var port string
@@ -28,6 +29,11 @@ type urlDescription struct {
 	Description string `json:"description"`
 	Payload     string `json:"payload,omitempty"`
 	IgnoreField string `json:"-"`
+}
+
+type balanceResponse struct {
+	Address string `json:"address"`
+	Balance int `json:"balance"`
 }
 
 type errorResponse struct {
@@ -63,6 +69,11 @@ func documentation(rw http.ResponseWriter, r *http.Request) {
 			URL:         url("/blocks/{hash}"),
 			Method:      "GET",
 			Description: "See A Block",
+		},
+		{
+			URL:         url("/balance/{address}"),
+			Method:      "GET",
+			Description: "Get TxOuts for an Address",
 		},
 	}
 
@@ -116,6 +127,20 @@ func status(rw http.ResponseWriter, r *http.Request){
 
 }
 
+func balance(rw http.ResponseWriter, r *http.Request){
+	vars := mux.Vars(r)
+	address := vars["address"]
+	total := r.URL.Query().Get("total")
+	switch total {
+		case "true":
+			amount := blockchain.Blockchain().BalanceByAddress(address)
+			json.NewEncoder(rw).Encode(balanceResponse{address, amount})
+		default: 
+			utils.HandleErr(json.NewEncoder(rw).Encode(blockchain.Blockchain().TxOutsByAddress(address)))
+	}
+
+}
+
 func Start(aPort int) {
 	// ListenAndServe(port, nil): nil 일 경우 기본 multiplexer 를 사용
 	// multiplexer 는 클라이언트가 보낸 요청을 어디로 보낼지 결정하는데, main.go 에서 호출한 두 package의 Start() 가 같은 url 을 호출하고 있음 
@@ -130,7 +155,7 @@ func Start(aPort int) {
 	router.HandleFunc("/status", status).Methods("GET")
 	router.HandleFunc("/blocks", blocks).Methods("GET", "POST")
 	router.HandleFunc("/blocks/{hash:[a-f0-9]+}", block).Methods("GET") // gorillaMux can use regex
-	
+	router.HandleFunc("/balance/{address}", balance)
 	fmt.Printf("Listening on http://localhost%s\n", port)
 	log.Fatal(http.ListenAndServe(port, router))
 

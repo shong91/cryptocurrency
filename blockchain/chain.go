@@ -94,6 +94,41 @@ func (b *blockchain) difficulty() int {
 	}
 }
 
+// 모든 거래 출력량을 리턴. 
+func (b *blockchain) txOuts() []*TxOut{
+	var txOuts []*TxOut
+	blocks := b.Blocks()
+	for _, block := range blocks {
+		for _, tx := range block.Transactions {
+			// 각각의 블록 안에 있는 모든 거래들의 출력값을 하나의 슬라이스 (txOuts) 에 담는다. 
+			txOuts = append(txOuts, tx.TxOuts...)
+		}
+	}
+	return txOuts
+}
+
+// 주소에 따른 거래 출력량 리턴. 
+func (b *blockchain) TxOutsByAddress(address string) []*TxOut {
+	var ownedTxOuts []*TxOut
+	txOuts := b.txOuts()
+	for _, txOuts := range txOuts {
+		if txOuts.Owner == address {
+			ownedTxOuts = append(ownedTxOuts, txOuts)
+		}
+	}
+	return ownedTxOuts
+
+}
+
+func (b *blockchain) BalanceByAddress(address string) int {
+	txOuts := b.TxOutsByAddress(address)
+	var amount int 
+	for _, txOut := range txOuts {
+		amount += txOut.Amount
+	}
+	return amount
+}
+
 // singleton pattern: share ONLY 1 INSTANCE in application
 func Blockchain() *blockchain {
 	if b == nil {
